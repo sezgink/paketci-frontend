@@ -1,5 +1,6 @@
 package com.example.sezgink.paketciapp;
 
+import android.graphics.Color;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -26,9 +27,12 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Arrays;
 
 public class CarrierActivity extends AppCompatActivity implements OnMapReadyCallback {
     private MapView mapView;
@@ -36,6 +40,7 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
     RequestQueue queue;
 
     private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
+    final LatLng pointsW[] = {new LatLng(40.7143528, -74.0059731),new LatLng(40.814, -74.298),new LatLng(40.9143, -74.0056931)};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,6 +70,17 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
                                     MarkerOptions markerOptions = new MarkerOptions();
                                     markerOptions.position(fy);
                                     gmap.addMarker(markerOptions);
+
+                                    PolylineOptions lineOptions = new PolylineOptions();
+                                    lineOptions.addAll(Arrays.asList(pointsW));
+                                    lineOptions.width(6);
+                                    lineOptions.color(Color.RED);
+                                    lineOptions.geodesic(true);
+
+
+                                    gmap.addPolyline(lineOptions);
+
+
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
