@@ -15,7 +15,8 @@
     <link rel="stylesheet" href='styles/bootstrap.css'>
     <link rel="stylesheet" href='styles/layout.css'>
     <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-    <script src='scripts/bootstrap.min.js'></script>
+    <script src="scripts/jquery.min.js"></script>
+    <script src="scripts/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
 
 
@@ -68,12 +69,89 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container" ng-app="myApp" ng-controller="myCtrl">
+        <div class="row">
+            <p>
+                {{message}}
+            </p>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <td> Location </td>
+                        <td> Destination </td>
+                        <td> Weight </td>
+                        <td> State </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="packet in packets">
+                        <td>{{ packet.initLocation }}</td>
+                        <td>{{ packet.destLocation }}</td>
+                        <td>{{ packet.weight }}</td>
+                        <td>{{ packet.state }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="row">
+            <ul class="pagination">
+                <li>
+                    <a ng-click="getData()" href="#"> Get </a>
+                </li>
+                <li>
+                    <a ng-click="prevPage()" href="#"> GERİ </a>
+                </li>
+                <li>
+                    <a ng-click="nextPage()" href="#"> İLERİ </a>
+                </li>
+            </ul>
+        </div>
 
 
-        
 
     </div>
+
+    <script>
+        var app = angular.module('myApp', []);
+        app.controller('myCtrl', function ($scope, $http) {
+            $scope.getData = function () {
+                //pagination system
+                $scope.linePerPage = 10;
+                $scope.arrayPosition = 0;
+                $scope.nextPage = function () {
+                    $scope.arrayPosition += $scope.linePerPage;
+                    console.log("nextpage");
+                    $scope.recordsShow = $scope.records.slice($scope.arrayPosition, $scope.arrayPosition + $scope.linePerPage);
+                }
+                $scope.prevPage = function () {
+                    $scope.arrayPosition -= $scope.linePerPage;
+                    console.log("prevpage");
+                    $scope.recordsShow = $scope.records.slice($scope.arrayPosition, $scope.arrayPosition + $scope.linePerPage);
+                }
+
+                //get data from server
+                $http.get("http://localhost:3000/api/packet")
+                    .then(function (response) {
+                        console.log(response.data);
+                        $scope.packets = response.data;
+                        $scope.message = "Data received."
+                    });
+            };
+
+        });
+
+        app.filter('range', function () {
+            return function (input, total) {
+                total = parseInt(total);
+                for (var i = 0; i < total; i++)
+                    input.push(i);
+                return input;
+            };
+        });
+
+    </script>
+
+
 
 </body>
 
