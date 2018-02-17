@@ -71,6 +71,28 @@
 
     <div class="container" ng-app="myApp" ng-controller="myCtrl">
         <div class="row">
+            <div class="col-md-9">
+                <iframe width="850" height="600" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyAehQZwQFBMMFUuW4aamsSFIZOxCvwc1zw
+                      &q=Space+Needle,Seattle+WA" allowfullscreen>
+                </iframe>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"> Couriers </h3>
+                    </div>
+                    <div class="panel-body" style="overflow-y: auto; height:550px;">
+                        <ul class="list-group">
+                            <a href="#" class="list-group-item" ng-repeat="courier in couriersToShow">
+                                {{courier._id}} <div align="right">{{courier.remainingCapacity-courier.loadCapacity}}/{{courier.remainingCapacity}}</div>
+                                <small>{{courier.curLocation.lat}} {{courier.curLocation.long}} </small>
+                            </a>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
             <p>
                 {{message}}
             </p>
@@ -84,7 +106,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="packet in packets">
+                    <tr ng-repeat="packet in packetsToShow">
                         <td>{{ packet.initLocation }}</td>
                         <td>{{ packet.destLocation }}</td>
                         <td>{{ packet.weight }}</td>
@@ -92,41 +114,39 @@
                     </tr>
                 </tbody>
             </table>
-        </div>
-        <div class="row">
             <ul class="pagination">
                 <li>
-                    <a ng-click="getData()" href="#"> Get </a>
+                    <a ng-click="getPackets()" href="#"> Get Packages </a>
                 </li>
                 <li>
-                    <a ng-click="prevPage()" href="#"> GERİ </a>
+                    <a ng-click="getCouriers()" href="#"> Get Couriers </a>
                 </li>
                 <li>
-                    <a ng-click="nextPage()" href="#"> İLERİ </a>
+                    <a ng-click="prevPage()" href="#"> Back </a>
+                </li>
+                <li>
+                    <a ng-click="nextPage()" href="#"> Next </a>
                 </li>
             </ul>
         </div>
-
-
-
     </div>
 
     <script>
         var app = angular.module('myApp', []);
         app.controller('myCtrl', function ($scope, $http) {
-            $scope.getData = function () {
+            $scope.getPackets = function () {
                 //pagination system
                 $scope.linePerPage = 10;
                 $scope.arrayPosition = 0;
                 $scope.nextPage = function () {
                     $scope.arrayPosition += $scope.linePerPage;
                     console.log("nextpage");
-                    $scope.recordsShow = $scope.records.slice($scope.arrayPosition, $scope.arrayPosition + $scope.linePerPage);
+                    $scope.packetsToShow = $scope.packets.slice($scope.arrayPosition, $scope.arrayPosition + $scope.linePerPage);
                 }
                 $scope.prevPage = function () {
                     $scope.arrayPosition -= $scope.linePerPage;
                     console.log("prevpage");
-                    $scope.recordsShow = $scope.records.slice($scope.arrayPosition, $scope.arrayPosition + $scope.linePerPage);
+                    $scope.packetsToShow = $scope.packets.slice($scope.arrayPosition, $scope.arrayPosition + $scope.linePerPage);
                 }
 
                 //get data from server
@@ -134,7 +154,18 @@
                     .then(function (response) {
                         console.log(response.data);
                         $scope.packets = response.data;
-                        $scope.message = "Data received."
+                        $scope.packetsToShow = response.data.slice($scope.arrayPosition, $scope.linePerPage);
+                        $scope.message = "Packages are received."
+                    });
+            };
+
+            $scope.getCouriers = function () {
+                //get data from server
+                $http.get("http://localhost:3000/api/courier")
+                    .then(function (response) {
+                        console.log(response.data);
+                        $scope.couriers = response.data;
+                        $scope.couriersToShow = response.data;
                     });
             };
 
