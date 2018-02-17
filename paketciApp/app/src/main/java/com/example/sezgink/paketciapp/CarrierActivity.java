@@ -27,12 +27,13 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Arrays;
+import java.io.Console;
 
 public class CarrierActivity extends AppCompatActivity implements OnMapReadyCallback {
     private MapView mapView;
@@ -40,7 +41,6 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
     RequestQueue queue;
 
     private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
-    final LatLng pointsW[] = {new LatLng(40.7143528, -74.0059731),new LatLng(40.814, -74.298),new LatLng(40.9143, -74.0056931)};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,20 +66,28 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
 
                                     textView.setText(response.get("hello").toString());
                                     LatLng fy = new LatLng(40.7143528, -74.0059731);
+                                    LatLng fy2 = new LatLng(40.7144528, -74.0059731);
 
                                     MarkerOptions markerOptions = new MarkerOptions();
                                     markerOptions.position(fy);
                                     gmap.addMarker(markerOptions);
 
-                                    PolylineOptions lineOptions = new PolylineOptions();
-                                    lineOptions.addAll(Arrays.asList(pointsW));
-                                    lineOptions.width(6);
-                                    lineOptions.color(Color.RED);
-                                    lineOptions.geodesic(true);
 
 
-                                    gmap.addPolyline(lineOptions);
+                                    Log.d("2.d Marker","No problem");
+                                    gmap.addMarker(new MarkerOptions().position(fy2));
+                                    Log.d("2.d Marker","Created");
 
+                                    gmap.addPolyline(new PolylineOptions()
+                                            .add(new LatLng(51.5, -0.1), new LatLng(40.7, -74.0))
+                                            .width(5)
+                                            .color(Color.RED));
+                                    gmap.addPolyline(new PolylineOptions()
+                                            .add(new LatLng(40.7, -74.0), new LatLng(40.7, -10.0))
+                                            .width(5)
+                                            .color(Color.RED));
+
+                                    gmap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(40.7, -74.0)));
 
                                 } catch (JSONException e) {
                                     e.printStackTrace();
