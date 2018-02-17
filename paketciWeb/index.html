@@ -72,9 +72,7 @@
     <div class="container" ng-app="myApp" ng-controller="myCtrl">
         <div class="row">
             <div class="col-md-9">
-                <iframe width="850" height="600" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyAehQZwQFBMMFUuW4aamsSFIZOxCvwc1zw
-                      &q=Space+Needle,Seattle+WA" allowfullscreen>
-                </iframe>
+                <div id="map" style=" height:550px; width:850px;"></div>
             </div>
             <div class="col-md-3">
                 <div class="panel panel-primary">
@@ -84,7 +82,8 @@
                     <div class="panel-body" style="overflow-y: auto; height:550px;">
                         <ul class="list-group">
                             <a href="#" class="list-group-item" ng-repeat="courier in couriersToShow">
-                                {{courier._id}} <div align="right">{{courier.remainingCapacity-courier.loadCapacity}}/{{courier.remainingCapacity}}</div>
+                                {{courier._id}}
+                                <div align="right">{{courier.remainingWeightCapacity-courier.weightCapacity}}/{{courier.remainingWeightCapacity}}</div>
                                 <small>{{courier.curLocation.lat}} {{courier.curLocation.long}} </small>
                             </a>
                         </ul>
@@ -122,6 +121,9 @@
                     <a ng-click="getCouriers()" href="#"> Get Couriers </a>
                 </li>
                 <li>
+                    <a ng-click="drawCourierRoute(0)" href="#"> Draw Route </a>
+                </li>
+                <li>
                     <a ng-click="prevPage()" href="#"> Back </a>
                 </li>
                 <li>
@@ -132,6 +134,54 @@
     </div>
 
     <script>
+
+        var map;
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 5,
+                center: new google.maps.LatLng(36, 41),
+                mapTypeId: 'terrain'
+            });
+        }
+        function addMarkerCourier(lat, lng, name) {
+            var image = {
+                url: 'images/courier.png', // image is 512 x 512
+                scaledSize: new google.maps.Size(32, 32),
+            };
+            var marker = new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                icon: image,
+                map: map,
+                title: name
+            });
+        }
+        function addMarkerPacket(lat, lng, name) {
+            var image = {
+                url: 'images/package.png', // image is 512 x 512
+                scaledSize: new google.maps.Size(32, 32),
+            };
+            var marker = new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                icon: image,
+                map: map,
+                title: name
+            });
+        }
+
+
+        // Loop through the results array and place a marker for each
+        // set of coordinates.
+        window.eqfeed_callback = function (results) {
+            // for (var i = 0; i < results.features.length; i++) {
+            //     var coords = results.features[i].geometry.coordinates;
+            //     var latLng = new google.maps.LatLng(coords[1], coords[0]);
+            //     var marker = new google.maps.Marker({
+            //         position: latLng,
+            //         map: map
+            //     });
+            // }
+        }
+
         var app = angular.module('myApp', []);
         app.controller('myCtrl', function ($scope, $http) {
             $scope.getPackets = function () {
@@ -156,6 +206,9 @@
                         $scope.packets = response.data;
                         $scope.packetsToShow = response.data.slice($scope.arrayPosition, $scope.linePerPage);
                         $scope.message = "Packages are received."
+                        $scope.packetsToShow.forEach(packet => {
+                            addMarkerPacket(packet.initLocation.lat, packet.initLocation.long, packet._id.toString());
+                        });
                     });
             };
 
@@ -166,8 +219,40 @@
                         console.log(response.data);
                         $scope.couriers = response.data;
                         $scope.couriersToShow = response.data;
+                        $scope.couriersToShow.forEach(courier => {
+                            addMarkerCourier(courier.curLocation.lat, courier.curLocation.long, courier._id.toString());
+
+                        });
                     });
             };
+
+            $scope.drawCourierRoute = function (id) {
+                var path = [];
+                var mycour = $scope.couriers[id];
+                var myroutes = mycour.routes;
+
+                console.log("mycour");
+                console.log(mycour);
+
+                mycour.routes.forEach(route => {
+                    var beginCoor = { lat: route.startLoc.lat, lng: route.startLoc.long };
+                    var endCoor = { lat: route.endLoc.lat, lng: route.endLoc.long };
+                    path.push(beginCoor);
+                    path.push(endCoor);
+                    console.log("denemeeeee");
+                });
+                console.log("path");
+                console.log(path);
+                var polyLine = new google.maps.Polyline({
+                    path: path,
+                    geodesic: true,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.5,
+                    strokeWeight: 2
+                });
+                polyLine.setMap(map);
+            }
+
 
         });
 
@@ -181,7 +266,8 @@
         });
 
     </script>
-
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC4UfPu9GI0Jrb4QkHOstJusKobgf1ncxw&callback=initMap">
+    </script>
 
 
 </body>
