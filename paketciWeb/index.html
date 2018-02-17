@@ -72,14 +72,14 @@
     <div class="container" ng-app="myApp" ng-controller="myCtrl">
         <div class="row">
             <div class="col-md-9">
-                <div id="map" style=" height:550px; width:850px;"></div>
+                <div id="map" style=" height:500px; width:850px;"></div>
             </div>
             <div class="col-md-3">
                 <div class="panel panel-primary">
                     <div class="panel-heading">
                         <h3 class="panel-title"> Couriers </h3>
                     </div>
-                    <div class="panel-body" style="overflow-y: auto; height:550px;">
+                    <div class="panel-body" style="overflow-y: auto; height:500px;">
                         <ul class="list-group">
                             <a href="#" class="list-group-item" ng-repeat="courier in couriersToShow">
                                 <div ng-click="drawCourierRoute(courier._id)">
@@ -94,18 +94,18 @@
             </div>
         </div>
         <div class="row">
-            <p>
-                {{message}}
-            </p>
             <ul class="pagination">
+                <li>
+                    <a ng-click="getCreate()" href="#"> Create Random Assets </a>
+                </li>
+                <li>
+                    <a ng-click="getOptimize()" href="#"> Optimize Routes </a>
+                </li>
                 <li>
                     <a ng-click="getPackets()" href="#"> Get Packages </a>
                 </li>
                 <li>
                     <a ng-click="getCouriers()" href="#"> Get Couriers </a>
-                </li>
-                <li>
-                    <a ng-click="drawCourierRoute(0)" href="#"> Draw Route </a>
                 </li>
                 <li>
                     <a ng-click="prevPage()" href="#"> Back </a>
@@ -114,6 +114,7 @@
                     <a ng-click="nextPage()" href="#"> Next </a>
                 </li>
             </ul>
+            {{message}}
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -200,6 +201,22 @@
 
         var app = angular.module('myApp', []);
         app.controller('myCtrl', function ($scope, $http) {
+            $scope.getCreate = function () {
+                $http.get("http://localhost:3000/api/create")
+                    .then(function (response) {
+                        console.log(response.data);
+                        $scope.message = "Created."
+                    });
+            };
+
+            $scope.getOptimize = function () {
+                $http.get("http://localhost:3000/api/routeOptimize")
+                    .then(function (response) {
+                        console.log(response.data);
+                        $scope.message = "Route Optimized."
+                    });
+            };
+
             $scope.getPackets = function () {
                 //pagination system
                 $scope.linePerPage = 10;
@@ -224,7 +241,7 @@
                         $scope.message = "Packages are received."
                         $scope.packetsToShow.forEach(packet => {
                             addMarkerPacket(packet.initLocation.lat, packet.initLocation.long, packet._id.toString());
-                            addMarkerDestination(packet.destLocation.lat,packet.destLocation.long,"Destination");
+                            addMarkerDestination(packet.destLocation.lat, packet.destLocation.long, "Destination");
                         });
                     });
             };
