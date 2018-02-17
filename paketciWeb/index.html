@@ -81,7 +81,7 @@
                     </div>
                     <div class="panel-body" style="overflow-y: auto; height:500px;">
                         <ul class="list-group">
-                            <a href="#" class="list-group-item" ng-repeat="courier in couriersToShow">
+                            <a href="#" class="list-group-item" ng-repeat="courier in couriers">
                                 <div ng-click="drawCourierRoute(courier._id)">
                                     <b>Courier {{courier._id}}</b>
                                     <div align="right">{{courier.remainingWeightCapacity}}/{{courier.weightCapacity}}</div>
@@ -239,7 +239,7 @@
                         $scope.packets = response.data;
                         $scope.packetsToShow = response.data.slice($scope.arrayPosition, $scope.linePerPage);
                         $scope.message = "Packages are received."
-                        $scope.packetsToShow.forEach(packet => {
+                        $scope.packets.forEach(packet => {
                             addMarkerPacket(packet.initLocation.lat, packet.initLocation.long, packet._id.toString());
                             addMarkerDestination(packet.destLocation.lat, packet.destLocation.long, "Destination");
                         });
@@ -253,7 +253,7 @@
                         console.log(response.data);
                         $scope.couriers = response.data;
                         $scope.couriersToShow = response.data;
-                        $scope.couriersToShow.forEach(courier => {
+                        $scope.couriers.forEach(courier => {
                             addMarkerCourier(courier.curLocation.lat, courier.curLocation.long, courier._id.toString());
 
                         });
