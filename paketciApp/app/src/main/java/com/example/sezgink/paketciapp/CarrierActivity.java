@@ -6,8 +6,18 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toolbar;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -17,14 +27,63 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class CarrierActivity extends AppCompatActivity implements OnMapReadyCallback {
     private MapView mapView;
     private GoogleMap gmap;
+    RequestQueue queue;
+
     private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_carrier);
+
+        queue = Volley.newRequestQueue(this);
+
+        Button buttonGet = findViewById(R.id.buttonGet);
+        final TextView textView = findViewById(R.id.showDataText);
+        buttonGet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                textView.setText("Lets start now");
+                String url = "https://api.myjson.com/bins/1grhp5";
+                JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET, url, null,
+                        new Response.Listener<JSONObject>()
+                        {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                // display response
+                                Log.d("Response", response.toString());
+                                try {
+
+                                    textView.setText(response.get("hello").toString());
+                                    LatLng fy = new LatLng(40.7143528, -74.0059731);
+
+                                    MarkerOptions markerOptions = new MarkerOptions();
+                                    markerOptions.position(fy);
+                                    gmap.addMarker(markerOptions);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        },
+                        new Response.ErrorListener()
+                        {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Log.d("Error.Response", error.toString());
+                            }
+                        }
+                );
+
+// add it to the RequestQueue
+                queue.add(getRequest);
+            }
+        });
+
 
 
         Bundle mapViewBundle = null;
@@ -35,6 +94,8 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(mapViewBundle);
         mapView.getMapAsync(this);
+
+
 
 
     }
@@ -77,5 +138,8 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
         gmap.setMinZoomPreference(12);
         LatLng ny = new LatLng(40.7143528, -74.0059731);
         gmap.moveCamera(CameraUpdateFactory.newLatLng(ny));
+
+
+
     }
 }
