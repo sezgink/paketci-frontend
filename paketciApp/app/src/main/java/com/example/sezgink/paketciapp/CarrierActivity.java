@@ -6,6 +6,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.Toolbar;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -17,43 +18,64 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class CarrierActivity extends AppCompatActivity implements OnMapReadyCallback {
-    private GoogleMap mMap;
-
+    private MapView mapView;
+    private GoogleMap gmap;
+    private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_carrier);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.g_map);
-        mapFragment.getMapAsync(this);
 
-        /*
-        final MapView mapView = findViewById(R.id.mapView);
-        mapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap googleMap) {
-                mMap = googleMap;
+        Bundle mapViewBundle = null;
+        if (savedInstanceState != null) {
+            mapViewBundle = savedInstanceState.getBundle(MAP_VIEW_BUNDLE_KEY);
+        }
 
-                // Add a marker in Sydney, Australia, and move the camera.
-                LatLng sydney = new LatLng(-34, 151);
-                mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-            }
-        });
-        */
+        mapView = findViewById(R.id.mapView);
+        mapView.onCreate(mapViewBundle);
+        mapView.getMapAsync(this);
 
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+    protected void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
 
-        //seattle coordinates
-        LatLng seattle = new LatLng(47.6062095, -122.3320708);
-        mMap.addMarker(new MarkerOptions().position(seattle).title("Seattle"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(seattle));
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
+    @Override
+    protected void onPause() {
+        mapView.onPause();
+        super.onPause();
+    }
+    @Override
+    protected void onDestroy() {
+        mapView.onDestroy();
+        super.onDestroy();
+    }
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        gmap = googleMap;
+        gmap.setMinZoomPreference(12);
+        LatLng ny = new LatLng(40.7143528, -74.0059731);
+        gmap.moveCamera(CameraUpdateFactory.newLatLng(ny));
     }
 }
