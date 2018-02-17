@@ -82,9 +82,11 @@
                     <div class="panel-body" style="overflow-y: auto; height:550px;">
                         <ul class="list-group">
                             <a href="#" class="list-group-item" ng-repeat="courier in couriersToShow">
-                                {{courier._id}}
-                                <div align="right">{{courier.remainingWeightCapacity-courier.weightCapacity}}/{{courier.remainingWeightCapacity}}</div>
-                                <small>{{courier.curLocation.lat}} {{courier.curLocation.long}} </small>
+                                <div ng-click="drawCourierRoute(courier._id)">
+                                    <b>Courier {{courier._id}}</b>
+                                    <div align="right">{{courier.remainingWeightCapacity}}/{{courier.weightCapacity}}</div>
+                                    <small>Loc: {{courier.curLocation.lat}}:{{courier.curLocation.long}} </small>
+                                </div>
                             </a>
                         </ul>
                     </div>
@@ -95,6 +97,23 @@
             <p>
                 {{message}}
             </p>
+            <ul class="pagination">
+                <li>
+                    <a ng-click="getPackets()" href="#"> Get Packages </a>
+                </li>
+                <li>
+                    <a ng-click="getCouriers()" href="#"> Get Couriers </a>
+                </li>
+                <li>
+                    <a ng-click="drawCourierRoute(0)" href="#"> Draw Route </a>
+                </li>
+                <li>
+                    <a ng-click="prevPage()" href="#"> Back </a>
+                </li>
+                <li>
+                    <a ng-click="nextPage()" href="#"> Next </a>
+                </li>
+            </ul>
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -113,29 +132,14 @@
                     </tr>
                 </tbody>
             </table>
-            <ul class="pagination">
-                <li>
-                    <a ng-click="getPackets()" href="#"> Get Packages </a>
-                </li>
-                <li>
-                    <a ng-click="getCouriers()" href="#"> Get Couriers </a>
-                </li>
-                <li>
-                    <a ng-click="drawCourierRoute(0)" href="#"> Draw Route </a>
-                </li>
-                <li>
-                    <a ng-click="prevPage()" href="#"> Back </a>
-                </li>
-                <li>
-                    <a ng-click="nextPage()" href="#"> Next </a>
-                </li>
-            </ul>
+
         </div>
     </div>
 
     <script>
 
         var map;
+        var polyLine;
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 5,
@@ -159,6 +163,18 @@
             var image = {
                 url: 'images/package.png', // image is 512 x 512
                 scaledSize: new google.maps.Size(32, 32),
+            };
+            var marker = new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                icon: image,
+                map: map,
+                title: name
+            });
+        }
+        function addMarkerDestination(lat, lng, name) {
+            var image = {
+                url: 'images/desination.png', // image is 512 x 512
+                scaledSize: new google.maps.Size(20, 32),
             };
             var marker = new google.maps.Marker({
                 position: { lat: lat, lng: lng },
@@ -208,6 +224,7 @@
                         $scope.message = "Packages are received."
                         $scope.packetsToShow.forEach(packet => {
                             addMarkerPacket(packet.initLocation.lat, packet.initLocation.long, packet._id.toString());
+                            addMarkerDestination(packet.destLocation.lat,packet.destLocation.long,"Destination");
                         });
                     });
             };
@@ -227,6 +244,13 @@
             };
 
             $scope.drawCourierRoute = function (id) {
+                try {
+                    polyLine.setMap(null);
+                } catch (error) {
+                    console.log(error);
+                }
+
+
                 var path = [];
                 var mycour = $scope.couriers[id];
                 var myroutes = mycour.routes;
@@ -237,23 +261,32 @@
                 mycour.routes.forEach(route => {
                     var beginCoor = { lat: route.startLoc.lat, lng: route.startLoc.long };
                     var endCoor = { lat: route.endLoc.lat, lng: route.endLoc.long };
-                    path.push(beginCoor);
+                    if (beginCoor == path[0]) {
+                        console.log("denemeeeee");
+                    } else {
+                        path.push(beginCoor);
+                    }
                     path.push(endCoor);
-                    console.log("denemeeeee");
+
                 });
                 console.log("path");
                 console.log(path);
-                var polyLine = new google.maps.Polyline({
+                var lineSymbol = {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+                };
+                polyLine = new google.maps.Polyline({
                     path: path,
                     geodesic: true,
                     strokeColor: '#FF0000',
                     strokeOpacity: 0.5,
-                    strokeWeight: 2
+                    strokeWeight: 2,
+                    icons: [{
+                        icon: lineSymbol,
+                        offset: '8%'
+                    }],
                 });
                 polyLine.setMap(map);
             }
-
-
         });
 
         app.filter('range', function () {
