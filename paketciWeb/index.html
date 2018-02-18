@@ -84,8 +84,12 @@
                             <a href="#" class="list-group-item" ng-repeat="courier in couriers">
                                 <div ng-click="drawCourierRoute(courier._id)">
                                     <b>Courier {{courier._id}}</b>
-                                    <div align="right">{{courier.remainingWeightCapacity}}/{{courier.weightCapacity}}</div>
-                                    <small>Loc: {{courier.curLocation.lat}}:{{courier.curLocation.long}} </small>
+                                    
+                                    <div align="right">
+                                        {{courier.pieceCapacity-courier.remainingPieceCapacity}} piece
+                                        {{fmtF(courier.weightCapacity-courier.remainingWeightCapacity,1)}}kg
+                                    </div>
+                                    <small>Loc: {{fmtF(courier.curLocation.lat,5)}},  {{fmtF(courier.curLocation.long,5)}} </small>
                                 </div>
                             </a>
                         </ul>
@@ -114,7 +118,9 @@
                     <a ng-click="nextPage()" href="#"> Next </a>
                 </li>
             </ul>
-            {{message}}
+            <p>
+                {{message}}
+            </p>
             <table class="table table-bordered">
                 <thead>
                     <tr>
@@ -128,7 +134,7 @@
                     <tr ng-repeat="packet in packetsToShow">
                         <td>{{ packet.initLocation }}</td>
                         <td>{{ packet.destLocation }}</td>
-                        <td>{{ packet.weight }}</td>
+                        <td>{{ fmtF(packet.weight,1) }}</td>
                         <td>{{ packet.state }}</td>
                     </tr>
                 </tbody>
@@ -143,14 +149,14 @@
         var polyLine;
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 5,
-                center: new google.maps.LatLng(36, 41),
+                zoom: 9,
+                center: new google.maps.LatLng(39.5, 31.5),
                 mapTypeId: 'terrain'
             });
         }
         function addMarkerCourier(lat, lng, name) {
             var image = {
-                url: 'images/courier.png', // image is 512 x 512
+                url: 'images/logo/courier.png', // image is 512 x 512
                 scaledSize: new google.maps.Size(32, 32),
             };
             var marker = new google.maps.Marker({
@@ -162,8 +168,8 @@
         }
         function addMarkerPacket(lat, lng, name) {
             var image = {
-                url: 'images/package.png', // image is 512 x 512
-                scaledSize: new google.maps.Size(32, 32),
+                url: 'images/logo/package_black.png', // image is 512 x 512
+                scaledSize: new google.maps.Size(24, 24),
             };
             var marker = new google.maps.Marker({
                 position: { lat: lat, lng: lng },
@@ -174,7 +180,7 @@
         }
         function addMarkerDestination(lat, lng, name) {
             var image = {
-                url: 'images/desination.png', // image is 512 x 512
+                url: 'images/logo/desination.png', // image is 512 x 512
                 scaledSize: new google.maps.Size(20, 32),
             };
             var marker = new google.maps.Marker({
@@ -207,6 +213,10 @@
                         console.log(response.data);
                         $scope.message = "Created."
                     });
+            };
+
+            $scope.fmtF = function (i,j) {
+                return i.toFixed(j);
             };
 
             $scope.getOptimize = function () {
