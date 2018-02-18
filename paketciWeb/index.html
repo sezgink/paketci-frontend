@@ -84,12 +84,11 @@
                             <a href="#" class="list-group-item" ng-repeat="courier in couriers">
                                 <div ng-click="drawCourierRoute(courier._id)">
                                     <b>Courier {{courier._id}}</b>
-                                    
+
                                     <div align="right">
-                                        {{courier.pieceCapacity-courier.remainingPieceCapacity}} piece
-                                        {{fmtF(courier.weightCapacity-courier.remainingWeightCapacity,1)}}kg
+                                        {{courier.pieceCapacity-courier.remainingPieceCapacity}} piece {{fmtF(courier.weightCapacity-courier.remainingWeightCapacity,1)}}kg
                                     </div>
-                                    <small>Loc: {{fmtF(courier.curLocation.lat,5)}},  {{fmtF(courier.curLocation.long,5)}} </small>
+                                    <small>Loc: {{fmtF(courier.curLocation.lat,5)}}, {{fmtF(courier.curLocation.long,5)}} </small>
                                 </div>
                             </a>
                         </ul>
@@ -106,10 +105,7 @@
                     <a ng-click="getOptimize()" href="#"> Optimize Routes </a>
                 </li>
                 <li>
-                    <a ng-click="getPackets()" href="#"> Get Packages </a>
-                </li>
-                <li>
-                    <a ng-click="getCouriers()" href="#"> Get Couriers </a>
+                    <a ng-click="getAssets()" href="#"> Get Assets </a>
                 </li>
                 <li>
                     <a ng-click="prevPage()" href="#"> Back </a>
@@ -147,16 +143,23 @@
 
         var map;
         var polyLine;
+        var directionsService;
+        var directionsDisplay;
+        var gMarkers = [];
+
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 9,
                 center: new google.maps.LatLng(39.5, 31.5),
                 mapTypeId: 'terrain'
             });
+            directionsService = new google.maps.DirectionsService;
+            directionsDisplay = new google.maps.DirectionsRenderer;
+            directionsDisplay.setMap(map);
         }
         function addMarkerCourier(lat, lng, name) {
             var image = {
-                url: 'images/logo/courier.png', // image is 512 x 512
+                url: 'images/logo/courier.png',
                 scaledSize: new google.maps.Size(32, 32),
             };
             var marker = new google.maps.Marker({
@@ -165,10 +168,11 @@
                 map: map,
                 title: name
             });
+            gMarkers.push(marker);
         }
         function addMarkerPacket(lat, lng, name) {
             var image = {
-                url: 'images/logo/package_black.png', // image is 512 x 512
+                url: 'images/logo/package_black.png',
                 scaledSize: new google.maps.Size(24, 24),
             };
             var marker = new google.maps.Marker({
@@ -177,10 +181,11 @@
                 map: map,
                 title: name
             });
+            gMarkers.push(marker);
         }
         function addMarkerDestination(lat, lng, name) {
             var image = {
-                url: 'images/logo/desination.png', // image is 512 x 512
+                url: 'images/logo/desination.png',
                 scaledSize: new google.maps.Size(20, 32),
             };
             var marker = new google.maps.Marker({
@@ -189,20 +194,51 @@
                 map: map,
                 title: name
             });
+            gMarkers.push(marker);
         }
 
+        function clearMarkers() {
+            for (i = 0; i < gMarkers.length; i++) {
+                gMarkers[i].setMap(null);
+            }
+        }
 
-        // Loop through the results array and place a marker for each
-        // set of coordinates.
+        function calculateAndDisplayRoute(paths) {
+
+            /*
+            Arrange paths as waypoints expect last and first points
+            last and first points should add as oringin and destination
+            */
+            console.log('paths');
+            console.log(paths);
+            var waypoints = [];
+            for (i = 1; i < (paths.length - 1); i++) {
+                var waypoint = {
+                    location: paths[i],
+                    stopover: false
+                };
+                waypoints.push(waypoint);
+            }
+            console.log('waypoints');
+            console.log(waypoints);
+
+            directionsService.route({
+                origin: paths[0],
+                destination: paths[length - 1],
+                waypoints: waypoints,
+                travelMode: 'DRIVING',
+                provideRouteAlternatives: false,
+            }, function (response, status) {
+                if (status === 'OK') {
+                    directionsDisplay.setDirections(response);
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }
+
         window.eqfeed_callback = function (results) {
-            // for (var i = 0; i < results.features.length; i++) {
-            //     var coords = results.features[i].geometry.coordinates;
-            //     var latLng = new google.maps.LatLng(coords[1], coords[0]);
-            //     var marker = new google.maps.Marker({
-            //         position: latLng,
-            //         map: map
-            //     });
-            // }
+
         }
 
         var app = angular.module('myApp', []);
@@ -215,7 +251,7 @@
                     });
             };
 
-            $scope.fmtF = function (i,j) {
+            $scope.fmtF = function (i, j) {
                 return i.toFixed(j);
             };
 
@@ -227,7 +263,14 @@
                     });
             };
 
-            $scope.getPackets = function () {
+            $scope.getAssets = function () {
+                /* clear markers and lines*/
+                clearMarkers();
+                try {
+                    polyLine.setMap(null);
+                } catch (error) {
+                    console.log(error);
+                }
                 //pagination system
                 $scope.linePerPage = 10;
                 $scope.arrayPosition = 0;
@@ -242,7 +285,7 @@
                     $scope.packetsToShow = $scope.packets.slice($scope.arrayPosition, $scope.arrayPosition + $scope.linePerPage);
                 }
 
-                //get data from server
+                //get packets from server
                 $http.get("http://localhost:3000/api/packet")
                     .then(function (response) {
                         console.log(response.data);
@@ -254,10 +297,7 @@
                             addMarkerDestination(packet.destLocation.lat, packet.destLocation.long, "Destination");
                         });
                     });
-            };
-
-            $scope.getCouriers = function () {
-                //get data from server
+                //get couriers from server
                 $http.get("http://localhost:3000/api/courier")
                     .then(function (response) {
                         console.log(response.data);
@@ -288,13 +328,10 @@
                 mycour.routes.forEach(route => {
                     var beginCoor = { lat: route.startLoc.lat, lng: route.startLoc.long };
                     var endCoor = { lat: route.endLoc.lat, lng: route.endLoc.long };
-                    if (beginCoor == path[0]) {
-                        console.log("denemeeeee");
-                    } else {
+                    if (path.length == 0) {
                         path.push(beginCoor);
                     }
                     path.push(endCoor);
-
                 });
                 console.log("path");
                 console.log(path);
@@ -313,6 +350,7 @@
                     }],
                 });
                 polyLine.setMap(map);
+                calculateAndDisplayRoute(path);
             }
         });
 
