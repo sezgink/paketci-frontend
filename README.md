@@ -2,7 +2,10 @@
 
 Getir Hackhathon 2018
 
-Takımdakiler: Sertan Sezgin Kutlu Ertuğrul Çınar Mehmet Ozan Ünal
+Takımdakiler: 
+Sertan Sezgin Kutlu 
+Ertuğrul Çınar 
+Mehmet Ozan Ünal
 
 # Paketci App
 
@@ -37,3 +40,4 @@ For async HTTPS requess, it been used Volley library in JSON Object and String r
 App takes missions from backend and by communicating with Google Direcitons API, get caluclations of every shorth path waypoints which collect and carry pointed packs in missions and drawing them on a Map View.
 
 In angular web app we see all packs and couriers with their missions and routes. Its allows users to add new packs to environment.
+

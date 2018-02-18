@@ -27,6 +27,8 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -167,6 +169,8 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
         gmap.addMarker(new MarkerOptions().position(new LatLng(curLocations.get("lat").getAsDouble(),curLocations.get("long").getAsDouble())));
     }
     private List<LatLng> parseRoute(String jsonObject) {
+        gmap.clear();
+
         List<LatLng> list1 = new ArrayList<>();
         JsonElement element = new JsonParser().parse(jsonObject);
         JsonObject jo = element.getAsJsonObject();
@@ -176,6 +180,11 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
 
         for(int i=0;i<routes.size();i++) {
             jo = routes.get(i).getAsJsonObject().getAsJsonObject("endLoc");
+            if(i==(routes.size()-1))
+                gmap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).position(new LatLng(jo.get("lat").getAsDouble(),jo.get("long").getAsDouble())));
+            else
+                gmap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).position(new LatLng(jo.get("lat").getAsDouble(),jo.get("long").getAsDouble())));
+
             list1.add(new LatLng(jo.get("lat").getAsDouble(),jo.get("long").getAsDouble()));
             Log.d("Parse", String.valueOf(i));
         }
@@ -183,7 +192,7 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
     }
 
     private void drawRoute(List<LatLng> points) {
-        gmap.clear();
+
         String theUrl;
         for (int i = 0; i<points.size()-1;i++) {
             theUrl = getUrl(points.get(i),points.get(i+1));
