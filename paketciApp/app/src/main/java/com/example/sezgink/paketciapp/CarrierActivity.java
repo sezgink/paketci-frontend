@@ -31,7 +31,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xml.sax.Parser;
@@ -60,7 +65,8 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
             @Override
             public void onClick(View v) {
                 textView.setText("Lets start now");
-                String url = "https://api.myjson.com/bins/1grhp5";
+                /*
+                String url = "https://api.myjson.com/bins/14imk1";
                 JsonObjectRequest getRequest = new JsonObjectRequest(Request.Method.GET, url, null,
                         new Response.Listener<JSONObject>()
                         {
@@ -78,30 +84,15 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
                                     markerOptions.position(fy);
                                     gmap.addMarker(markerOptions);
 
+                                    drawRoute(parseRoute(response.toString()));
+
 
 
                                     Log.d("2.d Marker","No problem");
                                     gmap.addMarker(new MarkerOptions().position(fy2));
                                     Log.d("2.d Marker","Created");
 
-                                    gmap.addPolyline(new PolylineOptions()
-                                            .add(new LatLng(51.5, -0.1), new LatLng(40.7, -74.0))
-                                            .width(5)
-                                            .color(Color.RED));
-                                    gmap.addPolyline(new PolylineOptions()
-                                            .add(new LatLng(40.7, -74.0), new LatLng(40.7, -10.0))
-                                            .width(5)
-                                            .color(Color.RED));
-                                    gmap.addPolyline(new PolylineOptions()
-                                            .add(new LatLng(50, -73.5), new LatLng(40.7, -10.0))
-                                            .width(5)
-                                            .color(Color.RED));
-                                    gmap.addPolyline(new PolylineOptions()
-                                            .add(new LatLng(42.7, -74.0), new LatLng(40.7, -10.0))
-                                            .width(5)
-                                            .color(Color.RED));
-
-                                    gmap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(40.7, -74.0)));
+                                    //gmap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(40.7, -74.0)));
 
                                 } catch (JSONException e) {
                                     e.printStackTrace();
@@ -116,13 +107,19 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
                             }
                         }
                 );
-                String url2 = getUrl(new LatLng(40.7143528, -74.0059731),new LatLng(40.5143528, -74.2059731));
-                StringRequest getRouteRequest = new StringRequest(url2,  new Response.Listener<String>() {
+                */
+                String url2 = getUrl(new LatLng(41.077858,29.0138537),new LatLng(41.077858,28.0138537));
+                StringRequest getRouteRequest = new StringRequest("https://paketciapi.herokuapp.com/api/courier/0",  new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
                         Log.d("Lol", "onResponse: ");
+                        Log.d("Lol", response);
+                        /*
                         ParserTask parserTask = new ParserTask();
                         parserTask.execute(response);
+                        */
+                        drawRoute(parseRoute(response));
+                        addMarkers(response);
 
                     }
                 }, new Response.ErrorListener() {
@@ -132,14 +129,18 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
                     }
                 });
 
+
+
                 // add it to the RequestQueue
-                queue.add(getRequest);
+                //queue.add(getRequest);
                 queue.add(getRouteRequest);
+
 
 
 
             }
         });
+        //https://api.myjson.com/bins/14imk1
 
 
 
@@ -157,7 +158,62 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
 
 
     }
+    private void addMarkers(String jsonObject) {
+        JsonElement element = new JsonParser().parse(jsonObject);
+        JsonObject jo = element.getAsJsonObject();
+        Log.d("Marker","1");
+        JsonObject curLocations = jo.getAsJsonObject("curLocation");
+        Log.d("Marker","2");
+        gmap.addMarker(new MarkerOptions().position(new LatLng(curLocations.get("lat").getAsDouble(),curLocations.get("long").getAsDouble())));
+    }
+    private List<LatLng> parseRoute(String jsonObject) {
+        List<LatLng> list1 = new ArrayList<>();
+        JsonElement element = new JsonParser().parse(jsonObject);
+        JsonObject jo = element.getAsJsonObject();
+        JsonArray routes = jo.getAsJsonArray("routes");
+        jo = routes.get(0).getAsJsonObject().getAsJsonObject("startLoc");
+        list1.add(new LatLng(jo.get("lat").getAsDouble(),jo.get("long").getAsDouble()));
 
+        for(int i=0;i<routes.size();i++) {
+            jo = routes.get(i).getAsJsonObject().getAsJsonObject("endLoc");
+            list1.add(new LatLng(jo.get("lat").getAsDouble(),jo.get("long").getAsDouble()));
+            Log.d("Parse", String.valueOf(i));
+        }
+        return list1;
+    }
+
+    private void drawRoute(List<LatLng> points) {
+        gmap.clear();
+        String theUrl;
+        for (int i = 0; i<points.size()-1;i++) {
+            theUrl = getUrl(points.get(i),points.get(i+1));
+            StringRequest getRouteRequest = new StringRequest(theUrl,  new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    Log.d("Lol", "onResponse: ");
+                    ParserTask parserTask = new ParserTask();
+                    parserTask.execute(response);
+                    Log.d("Lol", "Returned route response ");
+
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+
+                }
+            });
+            Log.d("Lol", "Ready to add request");
+            queue.add(getRouteRequest);
+
+
+        }
+        if(points.size()>0)
+        gmap.moveCamera(CameraUpdateFactory.newLatLng(points.get(0)));
+
+
+
+
+    }
 
 
     private String getUrl(LatLng origin, LatLng dest) {
@@ -221,7 +277,7 @@ public class CarrierActivity extends AppCompatActivity implements OnMapReadyCall
     public void onMapReady(GoogleMap googleMap) {
         gmap = googleMap;
         gmap.setMinZoomPreference(12);
-        LatLng ny = new LatLng(40.7143528, -74.0059731);
+        LatLng ny = new LatLng(41.077858,29.0138537);
         gmap.moveCamera(CameraUpdateFactory.newLatLng(ny));
         gmap.setMinZoomPreference(6);
 
