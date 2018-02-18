@@ -117,24 +117,33 @@
             <p>
                 {{message}}
             </p>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <td> Location </td>
-                        <td> Destination </td>
-                        <td> Weight </td>
-                        <td> State </td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="packet in packetsToShow">
-                        <td>{{ packet.initLocation }}</td>
-                        <td>{{ packet.destLocation }}</td>
-                        <td>{{ fmtF(packet.weight,1) }}</td>
-                        <td>{{ packet.state }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="row">
+                Courier Number:<input type='number' ng-model='courierNumber' ng-init="courierNumber=3">
+                Packet Number:<input type='number' ng-model='packetNumber' ng-init="packetNumber=10">
+                Weight Capacity:<input type='number' ng-model='weightCapacity' ng-init="weightCapacity=20">
+                PieceCapacity:<input type='number' ng-model='pieceCapacity' ng-init="pieceCapacity=8">
+            </div>
+            <div class="row">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <td> Location </td>
+                            <td> Destination </td>
+                            <td> Weight </td>
+                            <td> State </td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="packet in packetsToShow">
+                            <td>{{ packet.initLocation }}</td>
+                            <td>{{ packet.destLocation }}</td>
+                            <td>{{ fmtF(packet.weight,1) }}</td>
+                            <td>{{ packet.state }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
 
         </div>
     </div>
@@ -149,8 +158,8 @@
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 9,
-                center: new google.maps.LatLng(39.5, 31.5),
+                zoom: 12,
+                center: new google.maps.LatLng(40.74, -111.83),
                 mapTypeId: 'terrain'
             });
             directionsService = new google.maps.DirectionsService;
@@ -243,8 +252,19 @@
 
         var app = angular.module('myApp', []);
         app.controller('myCtrl', function ($scope, $http) {
+
+
             $scope.getCreate = function () {
-                $http.get("http://localhost:3000/api/create")
+                var params = {
+                    "courierNumber": $scope.courierNumber,
+                    "packetNumber": $scope.packetNumber,
+                    "weightCapacity": $scope.weightCapacity,
+                    "pieceCapacity": $scope.pieceCapacity
+                };
+                var url = "http://localhost:3000/api/create/"+$scope.courierNumber+"/"+$scope.packetNumber+"/"+ $scope.weightCapacity+"/"+$scope.pieceCapacity;
+                console.log(params);
+
+                $http.get( url )
                     .then(function (response) {
                         console.log(response.data);
                         $scope.message = "Created."
