@@ -212,7 +212,7 @@
             console.log('paths');
             console.log(paths);
             var waypoints = [];
-            for (i = 1; i < (paths.length - 1); i++) {
+            for (i = 0; i < (paths.length - 1); i++) {
                 var waypoint = {
                     location: paths[i],
                     stopover: false
@@ -224,7 +224,7 @@
 
             directionsService.route({
                 origin: paths[0],
-                destination: paths[length - 1],
+                destination: paths[paths.length - 1],
                 waypoints: waypoints,
                 travelMode: 'DRIVING',
                 provideRouteAlternatives: false,
